@@ -39,9 +39,12 @@ satisfy p = Parser f
                 | p x = Just (x, xs)
                 | otherwise = Nothing
 
-
 parseInt :: Parser Char
 parseInt = satisfy isInt
+
+parsePrimitive :: Parser (Expr Int)
+parsePrimitive = toPrim <$> (oneOrMore parseInt)
+                where toPrim n = Primitive (read n :: Int)
 
 zeroOrMore :: Parser a -> Parser [a]
 zeroOrMore p = oneOrMore p <|> pure []
