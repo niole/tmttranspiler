@@ -1,0 +1,16 @@
+goal:
+transpile algebra into Turing Machine instructions.
+
+create AST out of algebraic expression
+
+create way of mapping from AST into a turring machine
+
+Add
+
+Subtract
+
+Multiply
+
+Divide
+
+Primitive n
