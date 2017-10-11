@@ -46,6 +46,16 @@ parsePrimitive :: Parser (Expr Int)
 parsePrimitive = toPrim <$> (oneOrMore parseInt)
                 where toPrim n = Primitive (read n :: Int)
 
+parseAdd :: Parser (Expr Int)
+parseAdd = comb <$> (parsePrimitive <* skipSpaces) <*> isAdd <*> (skipSpaces *> parseAdd <|> parsePrimitive)
+                where comb p1 _ p2 = Add p1 p2
+
+isAdd :: Parser Char
+isAdd = satisfy $ \s -> s == '+'
+
+skipSpaces :: Parser String
+skipSpaces = zeroOrMore $ satisfy isSpace
+
 zeroOrMore :: Parser a -> Parser [a]
 zeroOrMore p = oneOrMore p <|> pure []
 
