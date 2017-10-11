@@ -46,9 +46,19 @@ parsePrimitive :: Parser (Expr Int)
 parsePrimitive = toPrim <$> (oneOrMore parseInt)
                 where toPrim n = Primitive (read n :: Int)
 
+parseMultiply :: Parser (Expr Int)
+parseMultiply = comb <$> (parsePrimitive <* skipSpaces) <*> isMultiply <*> (skipSpaces *> parseExpr)
+                where comb p1 _ p2 = Multiply p1 p2
+
 parseAdd :: Parser (Expr Int)
-parseAdd = comb <$> (parsePrimitive <* skipSpaces) <*> isAdd <*> (skipSpaces *> parseAdd <|> parsePrimitive)
+parseAdd = comb <$> (parsePrimitive <* skipSpaces) <*> isAdd <*> (skipSpaces *> parseExpr)
                 where comb p1 _ p2 = Add p1 p2
+
+parseExpr :: Parser (Expr Int)
+parseExpr = (skipSpaces *> parseMultiply) <|> (skipSpaces *> parseAdd) <|> (skipSpaces *> parsePrimitive)
+
+isMultiply :: Parser Char
+isMultiply = satisfy $ \s -> s == '*'
 
 isAdd :: Parser Char
 isAdd = satisfy $ \s -> s == '+'
