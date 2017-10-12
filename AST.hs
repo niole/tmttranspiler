@@ -47,7 +47,7 @@ parsePrimitive = toPrim <$> (oneOrMore parseInt)
                 where toPrim n = Primitive (read n :: Int)
 
 parseMultiply :: Parser (Expr Int)
-parseMultiply = comb <$> (parsePrimitive <* skipSpaces) <*> isMultiply <*> (skipSpaces *> parseExpr)
+parseMultiply = comb <$> (parsePrimitive <* skipSpaces) <*> isMultiply <*> (skipSpaces *> parseMultiply <|> parsePrimitive)
                 where comb p1 _ p2 = Multiply p1 p2
 
 parseAdd :: Parser (Expr Int)
