@@ -51,7 +51,7 @@ parseMultiply = comb <$> (parsePrimitive <* skipSpaces) <*> isMultiply <*> (skip
                 where comb p1 _ p2 = Multiply p1 p2
 
 parseAdd :: Parser (Expr Int)
-parseAdd = comb <$> (skipSpaces *> parseMultiply <|> parsePrimitive) <*> (skipSpaces *> isAdd) <*> (skipSpaces *> parseAdd <|> parsePrimitive)
+parseAdd = comb <$> (skipSpaces *> parseMultiply <|> parsePrimitive) <*> (skipSpaces *> isAdd) <*> (skipSpaces *> parseExpr <|> parsePrimitive)
                 where comb p1 _ p2 = Add p1 p2
 
 parseExpr :: Parser (Expr Int)
