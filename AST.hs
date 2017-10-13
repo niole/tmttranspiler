@@ -47,15 +47,29 @@ parsePrimitive = toPrim <$> (oneOrMore parseInt)
                 where toPrim n = Primitive (read n :: Int)
 
 parseMultiply :: Parser (Expr Int)
-parseMultiply = comb <$> (parsePrimitive <* skipSpaces) <*> isMultiply <*> (skipSpaces *> parseMultiply <|> parsePrimitive)
+parseMultiply = comb <$> (parsePrimitive <* skipSpaces) <*> isMultiply <*> (skipSpaces *> parseMultiply <|> parseDivide <|> parsePrimitive)
                 where comb p1 _ p2 = Multiply p1 p2
 
+parseDivide :: Parser (Expr Int)
+parseDivide = comb <$> (parsePrimitive <* skipSpaces) <*> isDivide <*> (skipSpaces *> parseDivide <|> parseMultiply <|> parsePrimitive)
+                where comb p1 _ p2 = Divide p1 p2
+
+parseSubtract :: Parser (Expr Int)
+parseSubtract = comb <$> (skipSpaces *> parseMultiply <|> parseDivide <|> parsePrimitive) <*> (skipSpaces *> isSubtract) <*> (skipSpaces *> parseExpr <|> parsePrimitive)
+                where comb p1 _ p2 = Subtract p1 p2
+
 parseAdd :: Parser (Expr Int)
-parseAdd = comb <$> (skipSpaces *> parseMultiply <|> parsePrimitive) <*> (skipSpaces *> isAdd) <*> (skipSpaces *> parseExpr <|> parsePrimitive)
+parseAdd = comb <$> (skipSpaces *> parseMultiply <|> parseDivide <|> parsePrimitive) <*> (skipSpaces *> isAdd) <*> (skipSpaces *> parseExpr <|> parsePrimitive)
                 where comb p1 _ p2 = Add p1 p2
 
 parseExpr :: Parser (Expr Int)
-parseExpr = (skipSpaces *> parseAdd) <|> (skipSpaces *> parseMultiply) <|> (skipSpaces *> parsePrimitive)
+parseExpr = skipSpaces *> parseAdd <|> parseSubtract <|> parseMultiply <|> parseDivide <|> parsePrimitive
+
+isDivide :: Parser Char
+isDivide = satisfy $ \s -> s == '/'
+
+isSubtract :: Parser Char
+isSubtract = satisfy $ \s -> s == '-'
 
 isMultiply :: Parser Char
 isMultiply = satisfy $ \s -> s == '*'
