@@ -5,6 +5,8 @@ data Expr a = Primitive a
   | Divide (Expr a) (Expr a)
         deriving (Show)
 
+-- 1 - 9 + 2 - 3 * 4 - 1 + 2 / 3
+
 newtype Parser a = Parser { parse :: String -> Maybe(a, String) }
 
 instance Functor Parser where
@@ -29,6 +31,19 @@ instance Alternative Parser where
                                 Nothing -> parse pb xs
                                 x -> x
 
+parseAddExpr :: Parser (Expr Int -> Expr Int)
+parseAddExpr = (multiCombAdd <$> isAdd <*> parseNode <*> parseExpr) <|> (combAdd <$> isAdd <*> parseNode)
+            where multiCombAdd _ n2 accer n1 = accer (Add n1 n2)
+                  combAdd _ n2 n1 = Add n1 n2
+
+parseSubtractExpr :: Parser (Expr Int -> Expr Int)
+parseSubtractExpr = (multiCombSub <$> isSubtract <*> parseNode <*> parseExpr) <|> (combSub <$> isSubtract <*> parseNode)
+            where multiCombSub _ n2 accer n1 = accer (Subtract n1 n2)
+                  combSub _ n2 n1 = Subtract n1 n2
+
+parseExpr :: Parser (Expr Int -> Expr Int)
+parseExpr = parseAddExpr <|> parseSubtractExpr
+
 isSpace :: Char -> Bool
 isSpace s = s == ' '
 
@@ -47,23 +62,19 @@ parsePrimitive = toPrim <$> (oneOrMore parseInt)
                 where toPrim n = Primitive (read n :: Int)
 
 parseMultiply :: Parser (Expr Int)
-parseMultiply = comb <$> (parsePrimitive <* skipSpaces) <*> isMultiply <*> (skipSpaces *> parseMultiply <|> parseDivide <|> parsePrimitive)
-                where comb p1 _ p2 = Multiply p1 p2
+parseMultiply = comb <$> parsePrimitive <*> isMultiply <*> parseNode
+                where comb a _ b = Multiply a b
 
 parseDivide :: Parser (Expr Int)
-parseDivide = comb <$> (parsePrimitive <* skipSpaces) <*> isDivide <*> (skipSpaces *> parseDivide <|> parseMultiply <|> parsePrimitive)
-                where comb p1 _ p2 = Divide p1 p2
+parseDivide = comb <$> parsePrimitive <*> isDivide <*> parseNode
+              where comb a _ b = Divide a b
 
-parseSubtract :: Parser (Expr Int)
-parseSubtract = comb <$> (skipSpaces *> parseMultiply <|> parseDivide <|> parsePrimitive) <*> (skipSpaces *> isSubtract) <*> (skipSpaces *> parseExpr <|> parsePrimitive)
-                where comb p1 _ p2 = Subtract p1 p2
+parseNode :: Parser (Expr Int)
+parseNode = parseMultiply <|> parseDivide <|> parsePrimitive
 
-parseAdd :: Parser (Expr Int)
-parseAdd = comb <$> (skipSpaces *> parseMultiply <|> parseDivide <|> parsePrimitive) <*> (skipSpaces *> isAdd) <*> (skipSpaces *> parseExpr <|> parsePrimitive)
-                where comb p1 _ p2 = Add p1 p2
-
-parseExpr :: Parser (Expr Int)
-parseExpr = skipSpaces *> parseAdd <|> parseSubtract <|> parseMultiply <|> parseDivide <|> parsePrimitive
+startParse :: Parser (Expr Int)
+startParse = (comb <$> parseNode <*> parseExpr) <|> parseNode
+             where comb node accer = accer node
 
 isDivide :: Parser Char
 isDivide = satisfy $ \s -> s == '/'
