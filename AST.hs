@@ -51,3 +51,7 @@ isMultiply = satisfy $ \s -> s == '*'
 
 isAdd :: Parser Char
 isAdd = satisfy $ \s -> s == '+'
+
+toAST :: String -> Maybe (Expr Int)
+toAST s = getExpression <$> parse startParse s
+          where getExpression (parsed, _) =  parsed
