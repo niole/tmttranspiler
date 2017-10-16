@@ -55,3 +55,10 @@ isAdd = satisfy $ \s -> s == '+'
 toAST :: String -> Maybe (Expr Int)
 toAST s = getExpression <$> parse startParse s
           where getExpression (parsed, _) =  parsed
+
+fromAST :: Expr Int -> String
+fromAST (Primitive n) = show n
+fromAST (Add a b) = fromAST a ++ "+" ++ fromAST b
+fromAST (Subtract a b) = fromAST a ++ "-" ++ fromAST b
+fromAST (Multiply a b) = fromAST a ++ "*" ++ fromAST b
+fromAST (Divide a b) = fromAST a ++ "/" ++ fromAST b
