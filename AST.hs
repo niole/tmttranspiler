@@ -1,3 +1,5 @@
+module AST (toAST, fromAST, Expr(..)) where
+
 import Parse
 import ParseHelpers
 
@@ -6,7 +8,7 @@ data Expr a = Primitive a
   | Subtract (Expr a) (Expr a)
   | Multiply (Expr a) (Expr a)
   | Divide (Expr a) (Expr a)
-        deriving (Show)
+        deriving (Show, Eq)
 
 parseAddExpr :: Parser (Expr Int -> Expr Int)
 parseAddExpr = (multiCombAdd <$> isAdd <*> parseNode <*> parseExpr) <|> (combAdd <$> isAdd <*> parseNode)
