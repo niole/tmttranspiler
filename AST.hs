@@ -58,7 +58,7 @@ parseInt :: Parser Char
 parseInt = satisfy isInt
 
 parsePrimitive :: Parser (Expr Int)
-parsePrimitive = toPrim <$> (oneOrMore parseInt)
+parsePrimitive = skipSpaces *> (toPrim <$> (oneOrMore parseInt)) <* skipSpaces
                 where toPrim n = Primitive (read n :: Int)
 
 parseMultiply :: Parser (Expr Int)
